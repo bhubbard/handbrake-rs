@@ -1,0 +1,8 @@
+[package]
+name = "handbrake-rs"
+version = "0.1.0"
+edition = "2021"
+description = "Memory-safe Rust port and headless transcoding engine inspired by HandBrake libhb"
+license = "MIT OR Apache-2.0"
+
+[dependencies]
