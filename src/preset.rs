@@ -1,0 +1,305 @@
+use serde::{Deserialize, Serialize};
+use crate::error::{HandBrakeError, Result};
+use crate::format::{AudioEncoder, ContainerFormat, VideoEncoder};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum PresetCategory {
+    General,
+    Web,
+    Devices,
+    Matroska,
+    Production,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Preset {
+    pub name: String,
+    pub description: String,
+    pub category: PresetCategory,
+    pub container: ContainerFormat,
+    pub video_encoder: VideoEncoder,
+    pub quality_rf: f32,
+    pub max_width: Option<u32>,
+    pub max_height: Option<u32>,
+    pub frame_rate: Option<f32>,
+    pub audio_encoder: AudioEncoder,
+    pub audio_bitrate: u32,
+    pub audio_channels: u32,
+    pub web_optimized: bool,
+    pub decomb: bool,
+    pub deinterlace: bool,
+}
+
+impl Preset {
+    pub fn all_presets() -> Vec<Preset> {
+        vec![
+            // --- General ---
+            Preset {
+                name: "Fast 1080p30".to_string(),
+                description: "Fast, standard H.264 encode for 1080p at 30 fps".to_string(),
+                category: PresetCategory::General,
+                container: ContainerFormat::Mp4,
+                video_encoder: VideoEncoder::X264,
+                quality_rf: 22.0,
+                max_width: Some(1920),
+                max_height: Some(1080),
+                frame_rate: Some(30.0),
+                audio_encoder: AudioEncoder::Aac,
+                audio_bitrate: 160,
+                audio_channels: 2,
+                web_optimized: true,
+                decomb: true,
+                deinterlace: false,
+            },
+            Preset {
+                name: "Fast 720p30".to_string(),
+                description: "Fast 720p H.264 encode for compact files".to_string(),
+                category: PresetCategory::General,
+                container: ContainerFormat::Mp4,
+                video_encoder: VideoEncoder::X264,
+                quality_rf: 22.0,
+                max_width: Some(1280),
+                max_height: Some(720),
+                frame_rate: Some(30.0),
+                audio_encoder: AudioEncoder::Aac,
+                audio_bitrate: 128,
+                audio_channels: 2,
+                web_optimized: true,
+                decomb: true,
+                deinterlace: false,
+            },
+            Preset {
+                name: "HQ 1080p30 Surround".to_string(),
+                description: "High quality H.264 with 5.1 surround sound pass-through".to_string(),
+                category: PresetCategory::General,
+                container: ContainerFormat::Mp4,
+                video_encoder: VideoEncoder::X264,
+                quality_rf: 20.0,
+                max_width: Some(1920),
+                max_height: Some(1080),
+                frame_rate: Some(30.0),
+                audio_encoder: AudioEncoder::Aac,
+                audio_bitrate: 320,
+                audio_channels: 6,
+                web_optimized: true,
+                decomb: true,
+                deinterlace: false,
+            },
+            Preset {
+                name: "Super HQ 1080p30 Surround".to_string(),
+                description: "Near-transparent H.264 with surround audio".to_string(),
+                category: PresetCategory::General,
+                container: ContainerFormat::Mkv,
+                video_encoder: VideoEncoder::X264,
+                quality_rf: 18.0,
+                max_width: Some(1920),
+                max_height: Some(1080),
+                frame_rate: Some(30.0),
+                audio_encoder: AudioEncoder::Flac,
+                audio_bitrate: 640,
+                audio_channels: 6,
+                web_optimized: false,
+                decomb: true,
+                deinterlace: false,
+            },
+            Preset {
+                name: "Fast 4K HEVC".to_string(),
+                description: "Ultra HD 4K H.265 encode for high dynamic range content".to_string(),
+                category: PresetCategory::General,
+                container: ContainerFormat::Mp4,
+                video_encoder: VideoEncoder::X265,
+                quality_rf: 24.0,
+                max_width: Some(3840),
+                max_height: Some(2160),
+                frame_rate: Some(60.0),
+                audio_encoder: AudioEncoder::Aac,
+                audio_bitrate: 192,
+                audio_channels: 2,
+                web_optimized: true,
+                decomb: true,
+                deinterlace: false,
+            },
+
+            // --- Web ---
+            Preset {
+                name: "Discord Nitro 1080p".to_string(),
+                description: "Optimized for 50MB/100MB Discord upload limits at 1080p".to_string(),
+                category: PresetCategory::Web,
+                container: ContainerFormat::Mp4,
+                video_encoder: VideoEncoder::X264,
+                quality_rf: 23.0,
+                max_width: Some(1920),
+                max_height: Some(1080),
+                frame_rate: Some(30.0),
+                audio_encoder: AudioEncoder::Opus,
+                audio_bitrate: 128,
+                audio_channels: 2,
+                web_optimized: true,
+                decomb: true,
+                deinterlace: false,
+            },
+            Preset {
+                name: "Discord Small 720p".to_string(),
+                description: "Strictly tuned for free 25MB Discord file limits".to_string(),
+                category: PresetCategory::Web,
+                container: ContainerFormat::Mp4,
+                video_encoder: VideoEncoder::X264,
+                quality_rf: 25.0,
+                max_width: Some(1280),
+                max_height: Some(720),
+                frame_rate: Some(30.0),
+                audio_encoder: AudioEncoder::Opus,
+                audio_bitrate: 96,
+                audio_channels: 2,
+                web_optimized: true,
+                decomb: true,
+                deinterlace: false,
+            },
+            Preset {
+                name: "YouTube 1080p60".to_string(),
+                description: "Fluid 60 fps encode ideal for game capture and screen recordings".to_string(),
+                category: PresetCategory::Web,
+                container: ContainerFormat::Mp4,
+                video_encoder: VideoEncoder::X264,
+                quality_rf: 21.0,
+                max_width: Some(1920),
+                max_height: Some(1080),
+                frame_rate: Some(60.0),
+                audio_encoder: AudioEncoder::Aac,
+                audio_bitrate: 192,
+                audio_channels: 2,
+                web_optimized: true,
+                decomb: true,
+                deinterlace: false,
+            },
+
+            // --- Devices ---
+            Preset {
+                name: "Apple 1080p30 Surround".to_string(),
+                description: "Compatible with Apple TV, iPad, iPhone, and Mac".to_string(),
+                category: PresetCategory::Devices,
+                container: ContainerFormat::Mp4,
+                video_encoder: VideoEncoder::VtH264,
+                quality_rf: 22.0,
+                max_width: Some(1920),
+                max_height: Some(1080),
+                frame_rate: Some(30.0),
+                audio_encoder: AudioEncoder::Aac,
+                audio_bitrate: 160,
+                audio_channels: 6,
+                web_optimized: true,
+                decomb: true,
+                deinterlace: false,
+            },
+            Preset {
+                name: "Apple 4K HEVC".to_string(),
+                description: "Hardware-accelerated Apple Silicon VideoToolbox HEVC 4K".to_string(),
+                category: PresetCategory::Devices,
+                container: ContainerFormat::Mp4,
+                video_encoder: VideoEncoder::VtH265,
+                quality_rf: 23.0,
+                max_width: Some(3840),
+                max_height: Some(2160),
+                frame_rate: Some(60.0),
+                audio_encoder: AudioEncoder::Aac,
+                audio_bitrate: 256,
+                audio_channels: 6,
+                web_optimized: true,
+                decomb: true,
+                deinterlace: false,
+            },
+
+            // --- Matroska ---
+            Preset {
+                name: "H.265 MKV 1080p".to_string(),
+                description: "Matroska container with high efficiency H.265 video".to_string(),
+                category: PresetCategory::Matroska,
+                container: ContainerFormat::Mkv,
+                video_encoder: VideoEncoder::X265,
+                quality_rf: 22.0,
+                max_width: Some(1920),
+                max_height: Some(1080),
+                frame_rate: Some(30.0),
+                audio_encoder: AudioEncoder::Opus,
+                audio_bitrate: 160,
+                audio_channels: 2,
+                web_optimized: false,
+                decomb: true,
+                deinterlace: false,
+            },
+            Preset {
+                name: "AV1 MKV 1080p".to_string(),
+                description: "Next-generation royalty-free AV1 video in Matroska".to_string(),
+                category: PresetCategory::Matroska,
+                container: ContainerFormat::Mkv,
+                video_encoder: VideoEncoder::SvtAv1,
+                quality_rf: 26.0,
+                max_width: Some(1920),
+                max_height: Some(1080),
+                frame_rate: Some(30.0),
+                audio_encoder: AudioEncoder::Opus,
+                audio_bitrate: 128,
+                audio_channels: 2,
+                web_optimized: false,
+                decomb: true,
+                deinterlace: false,
+            },
+
+            // --- Production ---
+            Preset {
+                name: "Production Standard".to_string(),
+                description: "Professional editing intermediate with constant frame rate".to_string(),
+                category: PresetCategory::Production,
+                container: ContainerFormat::Mp4,
+                video_encoder: VideoEncoder::X264,
+                quality_rf: 18.0,
+                max_width: None,
+                max_height: None,
+                frame_rate: None,
+                audio_encoder: AudioEncoder::Flac,
+                audio_bitrate: 640,
+                audio_channels: 2,
+                web_optimized: false,
+                decomb: false,
+                deinterlace: false,
+            },
+            Preset {
+                name: "Production Max ProRes".to_string(),
+                description: "Apple ProRes 422 HQ visually lossless video for editing suites".to_string(),
+                category: PresetCategory::Production,
+                container: ContainerFormat::Mkv,
+                video_encoder: VideoEncoder::ProRes,
+                quality_rf: 10.0,
+                max_width: None,
+                max_height: None,
+                frame_rate: None,
+                audio_encoder: AudioEncoder::Copy,
+                audio_bitrate: 0,
+                audio_channels: 2,
+                web_optimized: false,
+                decomb: false,
+                deinterlace: false,
+            },
+        ]
+    }
+
+    pub fn find(name: &str) -> Result<Self> {
+        let clean = name.trim().to_lowercase();
+        let all = Self::all_presets();
+
+        // Exact match
+        if let Some(p) = all.iter().find(|p| p.name.to_lowercase() == clean) {
+            return Ok(p.clone());
+        }
+
+        // Fuzzy / prefix match
+        if let Some(p) = all.iter().find(|p| p.name.to_lowercase().contains(&clean)) {
+            return Ok(p.clone());
+        }
+
+        Err(HandBrakeError::PresetNotFound(format!(
+            "Preset '{}' not found. Use --preset-list to view available presets.",
+            name
+        )))
+    }
+}
