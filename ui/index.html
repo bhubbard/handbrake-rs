@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HandBrake</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="hb-app">
+    <!-- Top Global Toolbar -->
+    <header class="hb-toolbar">
+      <div class="toolbar-group">
+        <button id="btn-open-source" class="tool-btn" title="Open Source File">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Open Source</span>
+        </button>
+        <button id="btn-add-queue" class="tool-btn" title="Add current job to queue">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>Add to Queue</span>
+        </button>
+        <button id="btn-start-encode" class="tool-btn primary" title="Start encoding">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+          </svg>
+          <span id="start-btn-label">Start Encode</span>
+        </button>
+        <button id="btn-pause-encode" class="tool-btn" disabled title="Pause encoding">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <rect x="6" y="4" width="4" height="16"></rect>
+            <rect x="14" y="4" width="4" height="16"></rect>
+          </svg>
+          <span>Pause</span>
+        </button>
+      </div>
+
+      <div class="toolbar-group right">
+        <button id="btn-toggle-queue" class="tool-btn" title="View Queue">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          <span>Queue (<span id="queue-count">0</span>)</span>
+        </button>
+        <button id="btn-toggle-presets" class="tool-btn active" title="Toggle Presets Sidebar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="15" y1="3" x2="15" y2="21"></line>
+          </svg>
+          <span>Presets</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Source & Destination Bar -->
+    <section class="hb-source-dest">
+      <div class="sd-row">
+        <label>Source:</label>
+        <div class="sd-input-wrapper">
+          <input type="text" id="source-path" readonly placeholder="No source file selected. Click 'Browse' or 'Open Source'..." />
+          <button id="btn-browse-source" class="btn-sm">Browse</button>
+        </div>
+      </div>
+      <div class="sd-row">
+        <label>Save As:</label>
+        <div class="sd-input-wrapper">
+          <input type="text" id="dest-path" placeholder="Select destination..." />
+          <button id="btn-browse-dest" class="btn-sm">Browse</button>
+        </div>
+      </div>
+      <div class="sd-row preset-row">
+        <label>Preset:</label>
+        <div class="preset-selector-wrap">
+          <select id="preset-select">
+            <option value="Fast 1080p30">Fast 1080p30 (Default)</option>
+          </select>
+          <span id="preset-desc-badge" class="badge">Standard 1080p H.264</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Main Workspace with Tabs and Presets Drawer -->
+    <div class="hb-workspace">
+      <!-- Left Content: Tabs & Settings -->
+      <main class="hb-main-content">
+        <!-- Navigation Tab Strip -->
+        <nav class="hb-tabs">
+          <button class="tab-link active" data-tab="tab-summary">Summary</button>
+          <button class="tab-link" data-tab="tab-dimensions">Dimensions</button>
+          <button class="tab-link" data-tab="tab-filters">Filters</button>
+          <button class="tab-link" data-tab="tab-video">Video</button>
+          <button class="tab-link" data-tab="tab-audio">Audio</button>
+          <button class="tab-link" data-tab="tab-subtitles">Subtitles</button>
+          <button class="tab-link" data-tab="tab-chapters">Chapters</button>
+        </nav>
+
+        <!-- Tab Panels -->
+        <div class="hb-tab-body">
+          <!-- Summary Tab -->
+          <div id="tab-summary" class="tab-panel active">
+            <div class="summary-grid">
+              <div class="card preview-card">
+                <div class="video-preview-box">
+                  <div class="preview-aspect">
+                    <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5">
+                      <rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect>
+                      <line x1="7" y1="2" x2="7" y2="22"></line>
+                      <line x1="17" y1="2" x2="17" y2="22"></line>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <line x1="2" y1="7" x2="7" y2="7"></line>
+                      <line x1="2" y1="17" x2="7" y2="17"></line>
+                      <line x1="17" y1="17" x2="22" y2="17"></line>
+                      <line x1="17" y1="7" x2="22" y2="7"></line>
+                    </svg>
+                    <span id="preview-resolution-text">1920 x 1080</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card details-card">
+                <h3>Format</h3>
+                <div class="form-row">
+                  <label>Format:</label>
+                  <select id="summary-container">
+                    <option value="mp4">MP4</option>
+                    <option value="mkv">MKV</option>
+                    <option value="webm">WebM</option>
+                  </select>
+                </div>
+                <div class="form-check-group">
+                  <label><input type="checkbox" id="summary-web-opt" checked /> Web Optimized</label>
+                  <label><input type="checkbox" id="summary-align-av" checked /> Align A/V Start</label>
+                </div>
+
+                <hr />
+
+                <h3>Preset Overview</h3>
+                <ul class="summary-list">
+                  <li><strong>Video:</strong> <span id="sum-video">x264, RF 22, 30 fps</span></li>
+                  <li><strong>Audio:</strong> <span id="sum-audio">AAC, 160 kbps, Stereo</span></li>
+                  <li><strong>Dimensions:</strong> <span id="sum-dims">1920x1080 max (Storage: 1920x1080)</span></li>
+                  <li><strong>Filters:</strong> <span id="sum-filters">Decomb: On, Deinterlace: Off</span></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dimensions Tab -->
+          <div id="tab-dimensions" class="tab-panel">
+            <div class="panel-section">
+              <h3>Resolution & Geometry</h3>
+              <div class="form-grid-2">
+                <div class="form-row">
+                  <label>Max Width:</label>
+                  <input type="number" id="dim-width" value="1920" />
+                </div>
+                <div class="form-row">
+                  <label>Max Height:</label>
+                  <input type="number" id="dim-height" value="1080" />
+                </div>
+                <div class="form-row">
+                  <label>Anamorphic:</label>
+                  <select id="dim-anamorphic">
+                    <option value="automatic">Automatic</option>
+                    <option value="strict">Strict</option>
+                    <option value="none">None</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label>Modulus:</label>
+                  <select id="dim-modulus">
+                    <option value="2">2</option>
+                    <option value="4">4</option>
+                    <option value="8">8</option>
+                    <option value="16">16</option>
+                  </select>
+                </div>
+              </div>
+
+              <h3>Cropping</h3>
+              <div class="form-check-group">
+                <label><input type="radio" name="crop-mode" value="auto" checked /> Automatic</label>
+                <label><input type="radio" name="crop-mode" value="none" /> None (0, 0, 0, 0)</label>
+                <label><input type="radio" name="crop-mode" value="custom" /> Custom</label>
+              </div>
+              <div class="crop-inputs" id="crop-custom-wrap">
+                <div class="crop-input"><label>Top:</label><input type="number" id="crop-top" value="0" /></div>
+                <div class="crop-input"><label>Bottom:</label><input type="number" id="crop-bottom" value="0" /></div>
+                <div class="crop-input"><label>Left:</label><input type="number" id="crop-left" value="0" /></div>
+                <div class="crop-input"><label>Right:</label><input type="number" id="crop-right" value="0" /></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters Tab -->
+          <div id="tab-filters" class="tab-panel">
+            <div class="panel-section">
+              <h3>Deinterlacing & Motion</h3>
+              <div class="form-grid-2">
+                <div class="form-row">
+                  <label>Deinterlace:</label>
+                  <select id="filter-deinterlace">
+                    <option value="off">Off</option>
+                    <option value="decomb" selected>Decomb (Smart detection)</option>
+                    <option value="yadif">Yadif</option>
+                    <option value="bwdif">BWDIF</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label>Preset:</label>
+                  <select id="filter-preset">
+                    <option value="default">Default</option>
+                    <option value="bob">Bob</option>
+                    <option value="skip">Skip Spatial</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label>Rotation / Flip:</label>
+                  <select id="filter-rotation">
+                    <option value="0">0° (None)</option>
+                    <option value="90">90° Clockwise</option>
+                    <option value="180">180°</option>
+                    <option value="270">270° Clockwise</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label>Denoise:</label>
+                  <select id="filter-denoise">
+                    <option value="off">Off</option>
+                    <option value="nlmeans">NLMeans (Light)</option>
+                    <option value="hqdn3d">HQDN3D</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Video Tab -->
+          <div id="tab-video" class="tab-panel">
+            <div class="panel-section">
+              <div class="form-grid-2">
+                <div class="form-row">
+                  <label>Video Encoder:</label>
+                  <select id="video-encoder">
+                    <option value="x264">H.264 (x264)</option>
+                    <option value="x265">H.265 (x265)</option>
+                    <option value="videotoolbox_h264">H.264 (Apple VideoToolbox HW)</option>
+                    <option value="videotoolbox_hevc">H.265 (Apple VideoToolbox HW)</option>
+                    <option value="svt_av1">AV1 (SVT-AV1)</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label>Framerate (FPS):</label>
+                  <select id="video-fps">
+                    <option value="30">30 (Peak Framerate)</option>
+                    <option value="60">60</option>
+                    <option value="24">24 (Film)</option>
+                    <option value="25">25 (PAL)</option>
+                    <option value="same">Same as source</option>
+                  </select>
+                </div>
+              </div>
+
+              <h3>Quality</h3>
+              <div class="quality-control-box">
+                <div class="quality-header">
+                  <span>Constant Quality (RF):</span>
+                  <span id="rf-value-display" class="rf-badge">22</span>
+                </div>
+                <input type="range" id="rf-slider" min="0" max="51" step="0.5" value="22" />
+                <div class="rf-labels">
+                  <span>51 (Lower Quality, Smaller File)</span>
+                  <span>0 (Lossless)</span>
+                </div>
+              </div>
+
+              <h3>Encoder Options</h3>
+              <div class="form-grid-2">
+                <div class="form-row">
+                  <label>Encoder Preset:</label>
+                  <select id="encoder-speed-preset">
+                    <option value="ultrafast">ultrafast</option>
+                    <option value="superfast">superfast</option>
+                    <option value="veryfast">veryfast</option>
+                    <option value="faster">faster</option>
+                    <option value="fast" selected>fast</option>
+                    <option value="medium">medium</option>
+                    <option value="slow">slow</option>
+                  </select>
+                </div>
+                <div class="form-row">
+                  <label>Encoder Profile:</label>
+                  <select id="encoder-profile">
+                    <option value="auto">auto</option>
+                    <option value="baseline">baseline</option>
+                    <option value="main">main</option>
+                    <option value="high" selected>high</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Audio Tab -->
+          <div id="tab-audio" class="tab-panel">
+            <div class="panel-section">
+              <div class="table-header-row">
+                <h3>Audio Tracks</h3>
+                <button id="btn-add-audio-track" class="btn-sm">+ Add Track</button>
+              </div>
+              <table class="hb-table">
+                <thead>
+                  <tr>
+                    <th>Track</th>
+                    <th>Codec</th>
+                    <th>Bitrate</th>
+                    <th>Channels</th>
+                    <th>Samplerate</th>
+                  </tr>
+                </thead>
+                <tbody id="audio-tracks-tbody">
+                  <tr>
+                    <td>1 (English)</td>
+                    <td>
+                      <select class="tbl-select" id="audio-codec">
+                        <option value="aac">AAC (avcodec)</option>
+                        <option value="ac3">AC3</option>
+                        <option value="mp3">MP3</option>
+                        <option value="opus">Opus</option>
+                        <option value="flac">FLAC</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="tbl-select" id="audio-bitrate">
+                        <option value="128">128 kbps</option>
+                        <option value="160" selected>160 kbps</option>
+                        <option value="192">192 kbps</option>
+                        <option value="256">256 kbps</option>
+                        <option value="320">320 kbps</option>
+                      </select>
+                    </td>
+                    <td>
+                      <select class="tbl-select" id="audio-channels">
+                        <option value="2" selected>Stereo</option>
+                        <option value="1">Mono</option>
+                        <option value="6">5.1 Channels</option>
+                      </select>
+                    </td>
+                    <td>48 kHz</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Subtitles Tab -->
+          <div id="tab-subtitles" class="tab-panel">
+            <div class="panel-section">
+              <h3>Subtitles</h3>
+              <p class="section-hint">Select embedded subtitle tracks or external SRT files to mux or burn into the output.</p>
+              <div class="form-check-group">
+                <label><input type="checkbox" id="sub-burn-in" /> Burn-in foreign audio search</label>
+                <label><input type="checkbox" id="sub-default" checked /> Include default subtitle track</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chapters Tab -->
+          <div id="tab-chapters" class="tab-panel">
+            <div class="panel-section">
+              <h3>Chapters</h3>
+              <div class="form-check-group">
+                <label><input type="checkbox" checked /> Create chapter markers</label>
+              </div>
+              <ul class="chapter-list">
+                <li>Chapter 1: 00:00:00 - Introduction</li>
+                <li>Chapter 2: 00:02:15 - Main Content</li>
+                <li>Chapter 3: 00:10:40 - Credits</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right Collapsible Presets Drawer -->
+      <aside class="hb-presets-sidebar" id="presets-sidebar">
+        <div class="presets-header">
+          <h3>Presets</h3>
+        </div>
+        <div class="presets-list" id="presets-list-container">
+          <!-- Populated dynamically via Rust backend -->
+          <div class="preset-category">
+            <div class="cat-title">General</div>
+            <div class="cat-item active" data-preset="Fast 1080p30">Fast 1080p30</div>
+            <div class="cat-item" data-preset="Fast 720p30">Fast 720p30</div>
+            <div class="cat-item" data-preset="HQ 1080p30 Surround">HQ 1080p30 Surround</div>
+          </div>
+          <div class="preset-category">
+            <div class="cat-title">Web</div>
+            <div class="cat-item" data-preset="Discord Nitro 1080p">Discord Nitro 1080p</div>
+            <div class="cat-item" data-preset="Gmail Large 3 Minutes 720p30">Gmail Large 720p</div>
+            <div class="cat-item" data-preset="Vimeo YouTube 1080p60">Vimeo YouTube 1080p60</div>
+          </div>
+          <div class="preset-category">
+            <div class="cat-title">Devices</div>
+            <div class="cat-item" data-preset="Apple 1080p60 Surround">Apple 1080p60 Surround</div>
+            <div class="cat-item" data-preset="Apple 2160p60 4K HEVC Surround">Apple 4K HEVC</div>
+            <div class="cat-item" data-preset="Chromecast 1080p30 Surround">Chromecast 1080p30</div>
+            <div class="cat-item" data-preset="PlayStation 1080p30">PlayStation 1080p30</div>
+          </div>
+          <div class="preset-category">
+            <div class="cat-title">Matroska</div>
+            <div class="cat-item" data-preset="H.264 MKV 1080p30">H.264 MKV 1080p30</div>
+            <div class="cat-item" data-preset="H.265 MKV 1080p30">H.265 MKV 1080p30</div>
+          </div>
+          <div class="preset-category">
+            <div class="cat-title">Production</div>
+            <div class="cat-item" data-preset="Production Standard">Production Standard</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Queue Drawer / Modal -->
+    <div class="hb-queue-modal" id="queue-modal">
+      <div class="queue-modal-header">
+        <h3>Transcode Queue</h3>
+        <button id="btn-close-queue" class="btn-sm">✕ Close</button>
+      </div>
+      <div class="queue-modal-body">
+        <table class="hb-table" id="queue-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Source</th>
+              <th>Preset</th>
+              <th>Destination</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="queue-table-body">
+            <tr>
+              <td colspan="5" class="empty-state">Queue is empty. Select a source and click 'Add to Queue'.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="queue-modal-footer">
+        <button id="btn-clear-queue" class="btn-sm">Clear Queue</button>
+      </div>
+    </div>
+
+    <!-- Bottom Status Bar -->
+    <footer class="hb-statusbar">
+      <div class="status-info">
+        <span class="status-indicator idle" id="status-dot"></span>
+        <span id="status-text">Ready</span>
+      </div>
+      <div class="status-progress-wrap">
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" id="progress-fill" style="width: 0%;"></div>
+        </div>
+        <span class="progress-text" id="progress-percent">0%</span>
+      </div>
+      <div class="status-stats">
+        <span id="stat-fps">0.0 fps</span>
+        <span class="divider">|</span>
+        <span id="stat-eta">ETA: --:--</span>
+      </div>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
